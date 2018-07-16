@@ -1,4 +1,5 @@
 import Vapor
+import Fluent
 
 /// Register your application's routes here.
 public func routes(_ router: Router) throws {
@@ -25,13 +26,42 @@ public func routes(_ router: Router) throws {
         }
     }
     
+    //    router.get("api", "v1", "people") { req -> Future<[Person]> in
+    //        return Person.query(on: req).all()
+    //    }
+    
     router.get("api", "v1", "people") { req -> Future<[Person]> in
-        return Person.query(on: req).all()
+        
+        switch req.query[String.self, at:"sort"] {
+        case "ascending":
+            return Person.query(on: req).sort(\Person.name, .ascending).all()
+        case "descending":
+            return Person.query(on: req).sort(\Person.name, .descending).all()
+        default:
+            return Person.query(on: req).all()
+        }
     }
     
     router.get("api", "v1", "person", "random") { req -> Future<Person> in
         
-        // TODO
+        return Person.query(on: req)
+            .all()
+            .flatMap(to: Person.self) { people in
+                
+                let random = Int(arc4random_uniform(UInt32(people.count))) + 1
+                
+                return Person.query(on: req)
+                    .filter(\.id == random)
+                    .first()
+                    .map(to: Person.self) { person in
+                        
+                        guard let person = person else {
+                            
+                            throw Abort(.notFound)
+                        }
+                        
+                        return person
+                }
+            }
     }
-
 }
