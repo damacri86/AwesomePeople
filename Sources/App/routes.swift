@@ -52,16 +52,16 @@ public func routes(_ router: Router) throws {
             .all()
             .flatMap(to: Person.self) { people in
                 
-                let random: Int
+                let randomNumber: Int
                 #if os(Linux)
                 srandom(UInt32(time(nil)))
-                random = UInt32(random() % people.count) + 1
+                randomNumber = Int(random() % people.count) + 1
                 #else
-                random = Int(arc4random_uniform(UInt32(people.count))) + 1
+                randomNumber = Int(arc4random_uniform(UInt32(people.count))) + 1
                 #endif
                 
                 return Person.query(on: req)
-                    .filter(\.id == random)
+                    .filter(\.id == randomNumber)
                     .first()
                     .map(to: Person.self) { person in
                         
