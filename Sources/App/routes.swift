@@ -26,6 +26,10 @@ public func routes(_ router: Router) throws {
         }
     }
     
+    router.delete("api", "v1", "person", Person.parameter) { req -> Future<Person> in
+        return try req.parameters.next(Person.self)
+    }
+        
     //    router.get("api", "v1", "people") { req -> Future<[Person]> in
     //        return Person.query(on: req).all()
     //    }
@@ -48,7 +52,13 @@ public func routes(_ router: Router) throws {
             .all()
             .flatMap(to: Person.self) { people in
                 
-                let random = Int(arc4random_uniform(UInt32(people.count))) + 1
+                let random: Int
+                #if os(Linux)
+                srandom(UInt32(time(nil)))
+                random = UInt32(random() % people.count) + 1
+                #else
+                random = Int(arc4random_uniform(UInt32(people.count))) + 1
+                #endif
                 
                 return Person.query(on: req)
                     .filter(\.id == random)

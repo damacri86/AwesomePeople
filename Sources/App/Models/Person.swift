@@ -28,3 +28,5 @@ extension Person: SQLiteModel {}
 extension Person: Migration {}
 
 extension Person: Content {}
+
+extension Person: Parameter {}
